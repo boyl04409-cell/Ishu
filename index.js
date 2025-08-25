@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const multer = require("multer");
-const login = require("fca-priyansh");
+const login = require("ws3-fca");
 
 let rkbInterval = null;
 let stopRequested = false;
