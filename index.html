@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Messenger Bot Launcher</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+  h2 { color: #333; }
+  form { background: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
+  input, button { padding: 10px; margin: 5px 0; width: 100%; }
+  button { background: #4CAF50; color: #fff; border: none; cursor: pointer; }
+  button:hover { background: #45a049; }
+  p { font-weight: bold; }
+</style>
+</head>
+<body>
+  <h2>Messenger Bot Panel</h2>
+
+  <form id="startForm">
+    <label>Upload AppState JSON:</label><br/>
+    <input type="file" id="appstate" required /><br/><br/>
+
+    <label>Owner UID:</label><br/>
+    <input type="text" id="owner" required /><br/><br/>
+
+    <button type="submit">Start Bot</button>
+  </form>
+
+  <form id="stopForm">
+    <button type="submit">Stop Bot</button>
+  </form>
+
+  <p>Status: <span id="status">Loading...</span></p>
+  <p>Uptime: <span id="uptime">0s</span></p>
+
+  <script>
+    async function updateStatus(){
+      try{
+        const res = await fetch('/status');
+        const data = await res.json();
+        document.getElementById('status').textContent = data.running ? "Running ✅" : "Stopped ❌";
+
+        const res2 = await fetch('/healthz');
+        const data2 = await res2.json();
+        document.getElementById('uptime').textContent = data2.uptime;
+      }catch(e){
+        document.getElementById('status').textContent="Error ❌";
+      }
+    }
+
+    setInterval(updateStatus, 5000);
+    updateStatus();
+
+    document.getElementById('startForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const fileInput = document.getElementById('appstate');
+      const ownerInput = document.getElementById('owner');
+
+      if(!fileInput.files[0] || !ownerInput.value.trim()){ alert("Fill both fields"); return; }
+
+      const formData = new FormData();
+      formData.append('appstate', fileInput.files[0]);
+      formData.append('owner', ownerInput.value.trim());
+
+      const res = await fetch('/start', { method:'POST', body:formData });
+      const data = await res.json();
+      alert(data.message);
+      updateStatus();
+    });
+
+    document.getElementById('stopForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const res = await fetch('/stop', { method:'POST' });
+      const data = await res.json();
+      alert(data.message);
+      updateStatus();
+    });
+  </script>
+</body>
+                                                    </html>
