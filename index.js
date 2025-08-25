@@ -106,7 +106,7 @@ function startBot(appStatePath, ownerUID) {
             if (index >= lines.length || stopRequested) { clearInterval(rkbInterval); rkbInterval = null; return; }
             api.sendMessage(`${name} ${lines[index]}`, threadID);
             index++;
-          }, 60000);
+          }, 6000);
           api.sendMessage(`sex hogya bche 🤣rkb ${name}`, threadID);
         }
 
