@@ -11,8 +11,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public")); // index.html serve kare
 
+// === Start Bot ===
 app.post("/start", upload.single("appstate"), (req, res) => {
-  if (!req.file || !req.body.owner) return res.json({ message: "AppState & Owner UID required!" });
+  if (!req.file || !req.body.owner)
+    return res.json({ message: "AppState & Owner UID required!" });
+
   fs.copyFileSync(req.file.path, "appstate.json");
   fs.writeFileSync("owner.txt", req.body.owner);
 
@@ -25,6 +28,7 @@ app.post("/start", upload.single("appstate"), (req, res) => {
   }
 });
 
+// === Stop Bot ===
 app.post("/stop", (req, res) => {
   if (botRunning && botInstance) {
     if (botInstance.stopBot) botInstance.stopBot();
@@ -36,8 +40,18 @@ app.post("/stop", (req, res) => {
   }
 });
 
+// === Status Check ===
 app.get("/status", (req, res) => {
   res.json({ running: botRunning });
 });
 
-app.listen(20782, () => console.log("🌐 WebPanel running: http://localhost:20782"));
+// === Health Check (Render/Hosting purpose) ===
+app.get("/healthz", (req, res) => {
+  res.status(200).send("OK");
+});
+
+// === Server Start ===
+const PORT = process.env.PORT || 20782;
+app.listen(PORT, () =>
+  console.log(`🌐 WebPanel running: http://localhost:${PORT}`)
+);
