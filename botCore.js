@@ -159,4 +159,58 @@ function startBot(appStatePath, ownerUID) {
           } catch { api.sendMessage("❌ Error nicknames", threadID); }
         }
 
-        else if (cmd === "/uid") api.sendMessage(`🆔 Group ID: ${threadID}`, thread
+        else if (cmd === "/uid") api.sendMessage(`🆔 Group ID: ${threadID}`, threadID);
+        else if (cmd === "/exit") { try { await api.removeUserFromGroup(api.getCurrentUserID(), threadID); } catch {} }
+
+        else if (cmd === "/rkb") {
+          if (!fs.existsSync("np.txt")) return api.sendMessage("❌ np.txt missing!", threadID);
+          const name = input.trim();
+          const lines = fs.readFileSync("np.txt", "utf8").split("\n").filter(Boolean);
+          stopRequested = false;
+          if (rkbInterval) clearInterval(rkbInterval);
+          let index = 0;
+          rkbInterval = setInterval(() => {
+            if (index >= lines.length || stopRequested) { clearInterval(rkbInterval); rkbInterval = null; return; }
+            api.sendMessage(`${name} ${lines[index]}`, threadID);
+            index++;
+          }, 5000);
+          api.sendMessage(`🤬 Start gaali on ${name}`, threadID);
+        }
+
+        else if (cmd === "/stop") { stopRequested = true; if (rkbInterval) { clearInterval(rkbInterval); rkbInterval = null; } }
+
+        else if (cmd === "/photo") {
+          api.sendMessage("📸 Send a photo or video within 1 minute...", threadID);
+          const handleMedia = async (mediaEvent) => {
+            if (mediaEvent.type === "message" && mediaEvent.threadID === threadID && mediaEvent.attachments?.length > 0) {
+              lastMedia = { attachments: mediaEvent.attachments, threadID: mediaEvent.threadID };
+              if (mediaLoopInterval) clearInterval(mediaLoopInterval);
+              mediaLoopInterval = setInterval(() => { if (lastMedia) api.sendMessage({ attachment: lastMedia.attachments }, lastMedia.threadID); }, 30000);
+              api.removeListener("message", handleMedia);
+            }
+          };
+          api.on("message", handleMedia);
+        }
+
+        else if (cmd === "/stopphoto") { if (mediaLoopInterval) { clearInterval(mediaLoopInterval); mediaLoopInterval = null; lastMedia = null; } }
+
+        else if (cmd.startsWith("/sticker")) {
+          if (!fs.existsSync("Sticker.txt")) return;
+          const delay = parseInt(cmd.replace("/sticker", ""));
+          const stickerIDs = fs.readFileSync("Sticker.txt", "utf8").split("\n").map(x => x.trim()).filter(Boolean);
+          if (stickerInterval) clearInterval(stickerInterval);
+          let i = 0; stickerLoopActive = true;
+          stickerInterval = setInterval(() => { if (!stickerLoopActive || i >= stickerIDs.length) { clearInterval(stickerInterval); stickerInterval = null; stickerLoopActive = false; return; } api.sendMessage({ sticker: stickerIDs[i] }, threadID); i++; }, delay * 1000);
+        }
+
+        else if (cmd === "/stopsticker") { if (stickerInterval) { clearInterval(stickerInterval); stickerInterval = null; stickerLoopActive = false; } }
+
+        else if (cmd === "/target") { targetUID = input.trim(); api.sendMessage(`🎯 Target set: ${targetUID}`, threadID); }
+        else if (cmd === "/cleartarget") { targetUID = null; api.sendMessage("🎯 Target cleared!", threadID); }
+
+      } catch (e) { console.error("⚠️ Error:", e.message); }
+    });
+  });
+}
+
+module.exports = { startBot };
