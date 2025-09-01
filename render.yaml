@@ -7,5 +7,5 @@ services:
     startCommand: "node bot.js"
     envVars:
       - key: NODE_VERSION
-        value: 18
+        value: 22.16.0
     autoDeploy: true
