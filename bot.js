@@ -15,8 +15,13 @@ let botOwnerUID = null;
 
 app.use("/", express.static("public"));
 
+// ===== Status =====
 app.get("/status", (_, res) => res.json({ running: botRunning }));
 
+// ===== Healthz =====
+app.get("/healthz", (_, res) => res.status(200).send("OK"));
+
+// ===== Start Bot =====
 app.post("/start", upload.single("appstate"), (req, res) => {
   try {
     if (!req.file || !req.body.owner) return res.json({ message: "AppState and Owner UID required" });
@@ -31,6 +36,7 @@ app.post("/start", upload.single("appstate"), (req, res) => {
   }
 });
 
+// ===== Stop Bot =====
 app.post("/stop", (_, res) => {
   botRunning = false;
   res.json({ message: "🛑 Bot stopped" });
