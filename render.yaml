@@ -1,1 +1,12 @@
-
+services:
+  - type: web
+    name: jerry-bot
+    env: node
+    plan: free
+    buildCommand: "npm install"
+    startCommand: "node index.js"
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+    healthCheckPath: /healthz
+    autoDeploy: true
