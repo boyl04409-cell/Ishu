@@ -4,9 +4,8 @@ services:
     env: node
     plan: free
     buildCommand: "npm install"
-    startCommand: "node index.js"
+    startCommand: "node bot.js"
     envVars:
       - key: NODE_VERSION
         value: 18
-    healthCheckPath: /healthz
     autoDeploy: true
