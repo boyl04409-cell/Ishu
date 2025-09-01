@@ -4,6 +4,8 @@ const login = require("ws3-fca");
 let rkbInterval = null;
 let stopRequested = false;
 const lockedGroupNames = {};
+const lockedThemes = {};
+const lockedEmojis = {};
 let mediaLoopInterval = null;
 let lastMedia = null;
 let targetUID = null;
@@ -34,9 +36,9 @@ function startBot(appStatePath, ownerUID) {
         if (!body) return;
         const lowerBody = body.toLowerCase();
 
+        // ==== Bad word filter ====
         const badNames = ["hannu", "syco"];
         const triggers = ["rkb", "bhen", "maa", "rndi", "chut", "randi", "madhrchodh", "mc", "bc", "didi", "ma"];
-
         if (badNames.some(n => lowerBody.includes(n)) &&
             triggers.some(w => lowerBody.includes(w)) &&
             !friendUIDs.includes(senderID)) {
@@ -46,12 +48,42 @@ function startBot(appStatePath, ownerUID) {
           );
         }
 
+        // ==== Only owner + LID ====
         if (![ownerUID, LID].includes(senderID)) return;
 
         const args = body.trim().split(" ");
         const cmd = args[0].toLowerCase();
         const input = args.slice(1).join(" ");
 
+        // ==== HELP ====
+        if (cmd === "/help") {
+          const helpText = `
+🛠 Available Commands:
+- /allname <name>
+- /groupname <name>
+- /lockgroupname <name>
+- /unlockgroupname
+- /uid
+- /exit
+- /rkb <name>
+- /stop
+- /photo
+- /stopphoto
+- /sticker<number> (ex: /sticker5)
+- /stopsticker
+- /target <uid>
+- /cleartarget
+- /theme <id>
+- /locktheme <id>
+- /unlocktheme
+- /emoji <😀>
+- /lockemoji <😀>
+- /unlockemoji
+          `;
+          return api.sendMessage(helpText, threadID);
+        }
+
+        // ==== Group Name Commands ====
         if (cmd === "/allname") {
           try {
             const info = await api.getThreadInfo(threadID);
@@ -71,9 +103,11 @@ function startBot(appStatePath, ownerUID) {
         else if (cmd === "/groupname") await api.setTitle(input, threadID);
         else if (cmd === "/lockgroupname") { await api.setTitle(input, threadID); lockedGroupNames[threadID] = input; }
         else if (cmd === "/unlockgroupname") delete lockedGroupNames[threadID];
+
         else if (cmd === "/uid") api.sendMessage(`🆔 Group ID: ${threadID}`, threadID);
         else if (cmd === "/exit") { try { await api.removeUserFromGroup(api.getCurrentUserID(), threadID); } catch {} }
 
+        // ==== RKB ====
         else if (cmd === "/rkb") {
           if (!fs.existsSync("np.txt")) return api.sendMessage("konsa gaLi du rkb ko", threadID);
           const name = input.trim();
@@ -91,6 +125,7 @@ function startBot(appStatePath, ownerUID) {
 
         else if (cmd === "/stop") { stopRequested = true; if (rkbInterval) { clearInterval(rkbInterval); rkbInterval = null; } }
 
+        // ==== Media Loop ====
         else if (cmd === "/photo") {
           api.sendMessage("📸 Send a photo or video within 1 minute...", threadID);
           const handleMedia = async (mediaEvent) => {
@@ -106,6 +141,7 @@ function startBot(appStatePath, ownerUID) {
 
         else if (cmd === "/stopphoto") { if (mediaLoopInterval) { clearInterval(mediaLoopInterval); mediaLoopInterval = null; lastMedia = null; } }
 
+        // ==== Sticker Loop ====
         else if (cmd.startsWith("/sticker")) {
           if (!fs.existsSync("Sticker.txt")) return;
           const delay = parseInt(cmd.replace("/sticker", ""));
@@ -117,8 +153,32 @@ function startBot(appStatePath, ownerUID) {
 
         else if (cmd === "/stopsticker") { if (stickerInterval) { clearInterval(stickerInterval); stickerInterval = null; stickerLoopActive = false; } }
 
+        // ==== Target ====
         else if (cmd === "/target") { targetUID = input.trim(); api.sendMessage(`Target set: ${targetUID}`, threadID); }
         else if (cmd === "/cleartarget") { targetUID = null; }
+
+        // ==== Theme Commands ====
+        else if (cmd === "/theme") { await api.changeThreadColor(input, threadID); }
+        else if (cmd === "/locktheme") { await api.changeThreadColor(input, threadID); lockedThemes[threadID] = input; }
+        else if (cmd === "/unlocktheme") delete lockedThemes[threadID];
+
+        // ==== Emoji Commands ====
+        else if (cmd === "/emoji") { await api.changeThreadEmoji(input, threadID); }
+        else if (cmd === "/lockemoji") { await api.changeThreadEmoji(input, threadID); lockedEmojis[threadID] = input; }
+        else if (cmd === "/unlockemoji") delete lockedEmojis[threadID];
+
+        // ==== Event Hooks for Locks ====
+        if (event.logMessageType === "log:thread-name" && lockedGroupNames[threadID]) {
+          await api.setTitle(lockedGroupNames[threadID], threadID);
+        }
+
+        if (event.logMessageType === "log:thread-color" && lockedThemes[threadID]) {
+          await api.changeThreadColor(lockedThemes[threadID], threadID);
+        }
+
+        if (event.logMessageType === "log:thread-icon" && lockedEmojis[threadID]) {
+          await api.changeThreadEmoji(lockedEmojis[threadID], threadID);
+        }
 
       } catch (e) { console.error("⚠️ Error:", e.message); }
     });
