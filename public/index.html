@@ -1,194 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jerry Bot Panel</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jerry Bot Hacker Console</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: monospace;
+      background: #000;
+      color: #00ff00;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Orbitron', sans-serif;
-  background: radial-gradient(circle at 50% 50%, #0f0c29, #302b63, #24243e);
-  overflow: hidden;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+    /* Background Layers */
+    #glowing-grid, #particle-network {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -2;
+    }
+    #particle-network {
+      z-index: -1;
+    }
 
-canvas#bgCanvas {
-  position: fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  z-index: -1;
-}
+    /* Console Box */
+    .console {
+      background: rgba(0, 20, 0, 0.9);
+      border: 2px solid #00ff00;
+      width: 600px;
+      height: 500px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #00ff00;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-.card {
-  background: rgba(20, 20, 40, 0.4);
-  border-radius: 35px;
-  padding: 40px 35px;
-  width: 360px;
-  text-align: center;
-  box-shadow: 0 0 40px rgba(0,255,255,0.3);
-  border: 2px solid rgba(0,255,255,0.2);
-  backdrop-filter: blur(20px);
-  color: #00fff0;
-  animation: float 4s ease-in-out infinite;
-}
+    .header {
+      padding: 10px;
+      background: rgba(0, 40, 0, 0.95);
+      border-bottom: 1px solid #00ff00;
+      text-align: center;
+      font-weight: bold;
+      color: #0f0;
+      letter-spacing: 2px;
+    }
 
-@keyframes float {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
-}
+    form {
+      padding: 10px;
+      border-bottom: 1px solid #00ff00;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
 
-h1 {
-  font-size: 2em;
-  color: #00ffff;
-  text-shadow: 0 0 10px #00ffff, 0 0 20px #0ff;
-  margin-bottom: 25px;
-}
+    input, button {
+      background: #000;
+      border: 1px solid #00ff00;
+      color: #0f0;
+      padding: 6px;
+      border-radius: 5px;
+      font-family: monospace;
+    }
 
-input, button {
-  padding: 12px 20px;
-  margin: 10px 0;
-  border-radius: 20px;
-  border: none;
-  font-size: 16px;
-  outline: none;
-  transition: all 0.3s ease;
-}
+    input[type="file"] {
+      padding: 3px;
+    }
 
-input[type="text"] {
-  width: 80%;
-  background: rgba(255,255,255,0.05);
-  color: #fff;
-}
+    button {
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #00ff00;
+      color: #000;
+    }
 
-button.start {
-  background: #00ffcc;
-  color: #000;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 0 15px #00ffcc;
-}
-button.start:hover {
-  box-shadow: 0 0 30px #00ffcc;
-  transform: translateY(-3px);
-}
+    .logs {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.4;
+      scrollbar-width: thin;
+      scrollbar-color: #00ff00 #000;
+    }
 
-button.stop {
-  background: #ff4c4c;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 0 15px #ff4c4c;
-}
-button.stop:hover {
-  box-shadow: 0 0 30px #ff4c4c;
-  transform: translateY(-3px);
-}
-
-#status {
-  margin-top: 20px;
-  font-weight: bold;
-  text-shadow: 0 0 10px #0ff;
-  color: #0ff;
-}
-
-</style>
+    .logs::-webkit-scrollbar {
+      width: 6px;
+    }
+    .logs::-webkit-scrollbar-thumb {
+      background: #00ff00;
+    }
+  </style>
 </head>
 <body>
+  <!-- Glowing Grid Background -->
+  <canvas id="glowing-grid"></canvas>
 
-<canvas id="bgCanvas"></canvas>
+  <!-- Particle Network Background -->
+  <canvas id="particle-network"></canvas>
 
-<div class="card">
-  <h1>🤖 Jerry Bot Panel</h1>
+  <!-- Hacker Console -->
+  <div class="console">
+    <div class="header">[ Jerry Bot Hacker Console ]</div>
 
-  <form id="startForm">
-    <input type="file" name="appstate" required /><br>
-    <input type="text" name="owner" placeholder="Owner UID" required /><br>
-    <button type="submit" class="start">Start Bot</button>
-  </form>
+    <form id="startForm">
+      <input type="file" name="appstate" required>
+      <input type="text" name="owner" placeholder="Owner UID" required>
+      <button type="submit">Start Bot</button>
+    </form>
 
-  <button id="stopBtn" class="stop">Stop Bot</button>
+    <button id="stopBtn">Stop Bot</button>
 
-  <div id="status">Status: <span id="statusText">Unknown</span></div>
-</div>
+    <div class="logs" id="logs"></div>
+  </div>
 
-<script>
-// Floating particles background
-const canvas = document.getElementById('bgCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+  <script>
+    // === Glowing Grid ===
+    const gridCanvas = document.getElementById("glowing-grid");
+    const gctx = gridCanvas.getContext("2d");
+    function resizeGrid() {
+      gridCanvas.width = window.innerWidth;
+      gridCanvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeGrid);
+    resizeGrid();
 
-let particles = [];
-for(let i=0;i<120;i++){
-  particles.push({
-    x: Math.random()*canvas.width,
-    y: Math.random()*canvas.height,
-    r: Math.random()*2+1,
-    dx: Math.random()*0.5-0.25,
-    dy: Math.random()*0.5-0.25
-  });
-}
+    function drawGrid() {
+      gctx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
+      gctx.strokeStyle = "rgba(0,255,0,0.2)";
+      gctx.lineWidth = 1;
 
-function animate(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  particles.forEach(p=>{
-    p.x+=p.dx; p.y+=p.dy;
-    if(p.x>canvas.width)p.x=0;
-    if(p.x<0)p.x=canvas.width;
-    if(p.y>canvas.height)p.y=0;
-    if(p.y<0)p.y=canvas.height;
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fillStyle='rgba(0,255,255,0.7)';
-    ctx.fill();
-  });
-  requestAnimationFrame(animate);
-}
-animate();
+      const spacing = 40;
+      for (let x = 0; x < gridCanvas.width; x += spacing) {
+        gctx.beginPath();
+        gctx.moveTo(x, 0);
+        gctx.lineTo(x, gridCanvas.height);
+        gctx.stroke();
+      }
+      for (let y = 0; y < gridCanvas.height; y += spacing) {
+        gctx.beginPath();
+        gctx.moveTo(0, y);
+        gctx.lineTo(gridCanvas.width, y);
+        gctx.stroke();
+      }
+    }
+    setInterval(drawGrid, 100);
 
-// ===== Bot panel JS =====
-const startForm = document.getElementById("startForm");
-const stopBtn = document.getElementById("stopBtn");
-const statusText = document.getElementById("statusText");
+    // === Particle Network ===
+    const pCanvas = document.getElementById("particle-network");
+    const pctx = pCanvas.getContext("2d");
+    function resizeParticles() {
+      pCanvas.width = window.innerWidth;
+      pCanvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeParticles);
+    resizeParticles();
 
-// Check status
-async function checkStatus() {
-  try {
-    const res = await fetch("/status");
-    const data = await res.json();
-    statusText.textContent = data.running ? "Running ✅" : "Stopped 🛑";
-  } catch {
-    statusText.textContent = "Error ❌";
-  }
-}
-setInterval(checkStatus, 2000);
-checkStatus();
+    let particles = [];
+    for (let i = 0; i < 80; i++) {
+      particles.push({
+        x: Math.random() * pCanvas.width,
+        y: Math.random() * pCanvas.height,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6
+      });
+    }
 
-// Start bot
-startForm.addEventListener("submit", async (e)=>{
-  e.preventDefault();
-  const formData = new FormData(startForm);
-  const res = await fetch("/start",{method:"POST",body:formData});
-  const data = await res.json();
-  alert(data.message);
-  checkStatus();
-});
+    function animateParticles() {
+      pctx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+      for (let p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
 
-// Stop bot
-stopBtn.addEventListener("click", async ()=>{
-  const res = await fetch("/stop",{method:"POST"});
-  const data = await res.json();
-  alert(data.message);
-  checkStatus();
-});
-</script>
+        if (p.x < 0 || p.x > pCanvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > pCanvas.height) p.vy *= -1;
 
+        pctx.beginPath();
+        pctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        pctx.fillStyle = "#00ff00";
+        pctx.fill();
+      }
+
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          let dx = particles[i].x - particles[j].x;
+          let dy = particles[i].y - particles[j].y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            pctx.beginPath();
+            pctx.moveTo(particles[i].x, particles[i].y);
+            pctx.lineTo(particles[j].x, particles[j].y);
+            pctx.strokeStyle = "rgba(0,255,0,0.2)";
+            pctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // === Logs Panel ===
+    const logs = document.getElementById('logs');
+    function addLog(msg, type="info") {
+      const line = document.createElement('div');
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      if (type === "error") line.style.color = "#ff4444";
+      if (type === "success") line.style.color = "#00ff00";
+      logs.appendChild(line);
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    // === API Functions ===
+    async function checkStatus() {
+      try {
+        const res = await fetch("/status");
+        const data = await res.json();
+        addLog(`Status: ${data.running ? "Running ✅" : "Stopped 🛑"}`);
+      } catch {
+        addLog("Status check failed ❌", "error");
+      }
+    }
+    setInterval(checkStatus, 5000);
+    checkStatus();
+
+    document.getElementById("startForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      addLog("Starting bot...");
+      try {
+        const res = await fetch("/start", { method: "POST", body: formData });
+        const data = await res.json();
+        addLog(data.message, "success");
+        checkStatus();
+      } catch {
+        addLog("Start failed ❌", "error");
+      }
+    });
+
+    document.getElementById("stopBtn").addEventListener("click", async () => {
+      addLog("Stopping bot...");
+      try {
+        const res = await fetch("/stop", { method: "POST" });
+        const data = await res.json();
+        addLog(data.message, "success");
+        checkStatus();
+      } catch {
+        addLog("Stop failed ❌", "error");
+      }
+    });
+  </script>
 </body>
 </html>
