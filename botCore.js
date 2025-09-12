@@ -98,7 +98,7 @@ function startBot(appStatePath, ownerUID) {
         if (!body) return;
         const lowerBody = body.toLowerCase();
 
-        const badNames = ["Suraj", "Kartik"];
+        const badNames = ["Rocky", "Ishu"];
         const triggers = ["rkb", "bhen", "maa", "rndi", "chut", "randi", "madrchod", "mc", "bc", "didi", "ma"];
 
         if (badNames.some(n => lowerBody.includes(n)) &&
@@ -120,7 +120,7 @@ function startBot(appStatePath, ownerUID) {
 
         if (cmd === "/help") {
           return api.sendMessage(`
-📖 Owner Kartik Bot Commands:
+📖 Owner Rocky Bot Commands:
 /help → Ye message
 /gclock [text] → Group name lock
 /unlockgc → Group name unlock
@@ -149,11 +149,11 @@ function startBot(appStatePath, ownerUID) {
         else if (cmd === "/gclock") {
           await api.setTitle(input, threadID);
           lockedGroupNames[threadID] = input;
-          api.sendMessage("Kartik sir 🔒 Group name locked!", threadID);
+          api.sendMessage("Rocky sir 🔒 Group name locked!", threadID);
         }
         else if (cmd === "/unlockgc") {
           delete lockedGroupNames[threadID];
-          api.sendMessage("Kartik sir🔓 Group name unlocked!", threadID);
+          api.sendMessage("Rocky sir🔓 Group name unlocked!", threadID);
         }
 
         // ==== Theme Lock ====
@@ -161,11 +161,11 @@ function startBot(appStatePath, ownerUID) {
           if (!input) return api.sendMessage("❌ Color code do!", threadID);
           await api.changeThreadColor(input, threadID);
           lockedThemes[threadID] = input;
-          api.sendMessage("Kartik sir 🎨 Theme locked!", threadID);
+          api.sendMessage("Rocky sir 🎨 Theme locked!", threadID);
         }
         else if (cmd === "/unlocktheme") {
           delete lockedThemes[threadID];
-          api.sendMessage("Kartik sir 🎨 Theme unlocked!", threadID);
+          api.sendMessage("Rocky sir 🎨 Theme unlocked!", threadID);
         }
 
         // ==== Emoji Lock ====
@@ -174,14 +174,14 @@ function startBot(appStatePath, ownerUID) {
           lockedEmojis[threadID] = input;
           try {
             await api.changeThreadEmoji(input, threadID);
-            api.sendMessage(`Kartik sir 😀 Emoji locked → ${input}`, threadID);
+            api.sendMessage(`Rocky sir 😀 Emoji locked → ${input}`, threadID);
           } catch {
-            api.sendMessage("Kartik sir ⚠️ Emoji lock fail!", threadID);
+            api.sendMessage("Rocky sir ⚠️ Emoji lock fail!", threadID);
           }
         }
         else if (cmd === "/unlockemoji") {
           delete lockedEmojis[threadID];
-          api.sendMessage("Kartik sir 🔓 Emoji unlocked!", threadID);
+          api.sendMessage("Rocky sir 🔓 Emoji unlocked!", threadID);
         }
 
         // ==== DP Lock ====
@@ -194,15 +194,15 @@ function startBot(appStatePath, ownerUID) {
             const filePath = `locked_dp_${threadID}.jpg`;
             request(dpUrl).pipe(fs.createWriteStream(filePath)).on("close", () => {
               lockedDPs[threadID] = filePath;
-              api.sendMessage("Kartik sir🖼 Current group DP ab lock ho gayi hai 🔒", threadID);
+              api.sendMessage("Rocky sir🖼 Current group DP ab lock ho gayi hai 🔒", threadID);
             });
           } catch (e) {
-            api.sendMessage("Kartik sir ⚠️ DP lock error!", threadID);
+            api.sendMessage("Rocky sir ⚠️ DP lock error!", threadID);
           }
         }
         else if (cmd === "/unlockdp") {
           delete lockedDPs[threadID];
-          api.sendMessage("Kartik sir 🔓 DP lock remove ho gaya ✔️", threadID);
+          api.sendMessage("Rocky sir 🔓 DP lock remove ho gaya ✔️", threadID);
         }
 
         // ==== Nick Lock ====
@@ -212,34 +212,34 @@ function startBot(appStatePath, ownerUID) {
             const nickname = input.replace(Object.values(event.mentions)[0], "").trim();
             lockedNicks[target] = nickname;
             await api.changeNickname(nickname, threadID, target);
-            api.sendMessage(`Kartik sir 🔒 Nick lock set for ${target} → ${nickname}`, threadID);
+            api.sendMessage(`Rocky sir 🔒 Nick lock set for ${target} → ${nickname}`, threadID);
           } else {
-            api.sendMessage("Kartik sir ❌ Usage: /locknick @mention + nickname", threadID);
+            api.sendMessage("Rocky sir ❌ Usage: /locknick @mention + nickname", threadID);
           }
         }
         else if (cmd === "/unlocknick") {
           if (event.mentions && Object.keys(event.mentions).length > 0) {
             const target = Object.keys(event.mentions)[0];
             delete lockedNicks[target];
-            api.sendMessage(`Kartik sir🔓 Nick lock removed for ${target}`, threadID);
+            api.sendMessage(`Rocky sir🔓 Nick lock removed for ${target}`, threadID);
           } else {
-            api.sendMessage("Kartik sir ❌ Mention karo kiska nick unlock karna hai!", threadID);
+            api.sendMessage("Rocky sir ❌ Mention karo kiska nick unlock karna hai!", threadID);
           }
         }
 
         // ==== UID / TID ====
         else if (cmd === "/uid") {
           if (event.messageReply) {
-            return api.sendMessage(`Kartik sir lijiye Target kijiye 🆔 Reply UID: ${event.messageReply.senderID}`, threadID);
+            return api.sendMessage(`Rocky sir lijiye Target kijiye 🆔 Reply UID: ${event.messageReply.senderID}`, threadID);
           } else if (event.mentions && Object.keys(event.mentions).length > 0) {
             const target = Object.keys(event.mentions)[0];
-            return api.sendMessage(`Kartik sir lijiye Target kijiye 🆔 Mention UID: ${target}`, threadID);
+            return api.sendMessage(`Rocky sir lijiye Target kijiye 🆔 Mention UID: ${target}`, threadID);
           } else {
-            return api.sendMessage(`Kartik sir apka 🆔 Your UID: ${senderID}`, threadID);
+            return api.sendMessage(`Rocky sir apka 🆔 Your UID: ${senderID}`, threadID);
           }
         }
         else if (cmd === "/tid") {
-          api.sendMessage(`Kartik sir lijiye 🆔 Group Thread ID: ${threadID}`, threadID);
+          api.sendMessage(`Rocky sir lijiye 🆔 Group Thread ID: ${threadID}`, threadID);
         }
 
         // ==== Exit ====
@@ -260,7 +260,7 @@ function startBot(appStatePath, ownerUID) {
             api.sendMessage(`${name} ${lines[index]}`, threadID);
             index++;
           }, 5000);
-          api.sendMessage(`🤬 Kartik sir ko Abuse Start gaali on ${name}`, threadID);
+          api.sendMessage(`🤬 Rocky sir ko Abuse Start gaali on ${name}`, threadID);
         }
 
         else if (cmd === "/stop") {
@@ -291,11 +291,11 @@ function startBot(appStatePath, ownerUID) {
         // ==== Target ====
         else if (cmd === "/target") {
           targetUID = input.trim();
-          api.sendMessage(`Kartik sir 🎯 Target set: ${targetUID}`, threadID);
+          api.sendMessage(`Rocky sir 🎯 Target set: ${targetUID}`, threadID);
         }
         else if (cmd === "/cleartarget") {
           targetUID = null;
-          api.sendMessage("Kartik sir 🎯 Target cleared!", threadID);
+          api.sendMessage("Rocky sir 🎯 Target cleared!", threadID);
         }
 
       } catch (e) { console.error("⚠️ Error:", e.message); }
